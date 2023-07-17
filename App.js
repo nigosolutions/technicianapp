@@ -1,20 +1,82 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import * as React from "react";
+import { BottomNavigation, Text } from "react-native-paper";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import AssetTagging from "./app/screens/AssetTagging";
+import Dashboard from "./app/screens/Dashboard";
+import Login from "./app/screens/Login";
+import { NavigationContainer } from "@react-navigation/native";
+import { StatusBar } from "react-native";
 
-export default function App() {
+const MainNav = createNativeStackNavigator();
+
+const DashboardRoute = () => <Dashboard />;
+
+const WorkOrdersRoute = () => <AssetTagging />;
+
+const SupportRoute = () => <Text>Recents</Text>;
+
+const SettingsRoute = () => <Text>Notifications</Text>;
+
+const MyComponent = () => {
+  const [index, setIndex] = React.useState(0);
+  const [routes] = React.useState([
+    {
+      key: "dashboard",
+      title: "Dashboard",
+      focusedIcon: "view-dashboard",
+      unfocusedIcon: "view-dashboard-outline",
+    },
+    {
+      key: "workorders",
+      title: "Work Orders",
+      focusedIcon: "tools",
+    },
+
+    {
+      key: "support",
+      title: "Support",
+      focusedIcon: "chat-question",
+      unfocusedIcon: "chat-question-outline",
+    },
+    {
+      key: "settings",
+      title: "Settings",
+      focusedIcon: "cog",
+      unfocusedIcon: "cog-outline",
+    },
+  ]);
+
+  const renderScene = BottomNavigation.SceneMap({
+    dashboard: DashboardRoute,
+    workorders: WorkOrdersRoute,
+    support: SupportRoute,
+    settings: SettingsRoute,
+  });
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaProvider>
+      <StatusBar />
+      <NavigationContainer>
+        <MainNav.Navigator>
+          <MainNav.Screen
+            name="Login"
+            component={Login}
+            options={{ headerShown: false }}
+          />
+          <MainNav.Screen name={"Tab"} options={{ headerShown: false }}>
+            {() => (
+              <BottomNavigation
+                navigationState={{ index, routes }}
+                onIndexChange={setIndex}
+                renderScene={renderScene}
+              />
+            )}
+          </MainNav.Screen>
+        </MainNav.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default MyComponent;
