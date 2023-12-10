@@ -1,6 +1,6 @@
 import React from "react";
 import { View } from "react-native";
-import { Avatar, Button, Card, Title } from "react-native-paper";
+import { Avatar, Button, Card, Text, Title } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
 
 function ImageComponent(props) {
@@ -18,12 +18,11 @@ function ImageComponent(props) {
     const result = await ImagePicker.launchImageLibraryAsync();
 
     // Explore the result
-    console.log(result);
 
-    if (!result.cancelled) {
-      setPickedImagePath(result.uri);
-      setFilePath(result);
-      console.log(result.uri);
+    if (!result.canceled) {
+      setPickedImagePath(result.assets[0].uri);
+
+      props.setImage(result.assets[0].uri);
     }
   };
   const openCamera = async () => {
@@ -38,12 +37,10 @@ function ImageComponent(props) {
     const result = await ImagePicker.launchCameraAsync();
 
     // Explore the result
-    console.log(result);
 
-    if (!result.cancelled) {
-      setPickedImagePath(result.uri);
-      setFilePath(result);
-      console.log(result.uri);
+    if (!result.canceled) {
+      setPickedImagePath(result.assets[0].uri);
+      props.setImage(result.assets[0].uri);
     }
   };
 
@@ -58,8 +55,8 @@ function ImageComponent(props) {
                 alignItems: "center",
               }}
             >
-              <Avatar.Icon icon="upload" />
-              <Title>Upload Image</Title>
+              <Avatar.Icon size={50} icon="upload" />
+              <Text style={{ marginVertical: 10 }}>Upload Image</Text>
             </Card.Content>
           </Card>
           <Card onPress={openCamera} style={{ flex: 1, margin: 5 }}>
@@ -69,8 +66,8 @@ function ImageComponent(props) {
                 alignItems: "center",
               }}
             >
-              <Avatar.Icon icon="camera" />
-              <Title>Open Camera</Title>
+              <Avatar.Icon size={50} icon="camera" />
+              <Text style={{ marginVertical: 10 }}>Open Camera</Text>
             </Card.Content>
           </Card>
         </View>
@@ -84,8 +81,8 @@ function ImageComponent(props) {
           <Card.Actions style={{ alignSelf: "center" }}>
             <Button
               onPress={() => {
-                console.log(pickedImagePath);
                 setPickedImagePath("");
+                props.setImage("");
               }}
             >
               Change Photo

@@ -11,6 +11,8 @@ const FormInput = ({
   secureTextEntry,
   placeholder,
   disabled,
+  multiline = false,
+  inputMode = "text",
 }) => {
   return (
     <Controller
@@ -35,7 +37,8 @@ const FormInput = ({
             ]}
           >
             <TextInput
-              mode="outlined"
+              inputMode={inputMode}
+              multiline={multiline}
               outlineColor={error && "red"}
               value={value}
               onChangeText={onChange}

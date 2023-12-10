@@ -1,72 +1,181 @@
-import { Appbar, Button, SegmentedButtons, Text } from "react-native-paper";
-import FormInput from "../components/forminput";
-import { useForm } from "react-hook-form";
-import { ScrollView, View } from "react-native";
-import ImageComponent from "../components/ImageComponent";
-import FormSelect from "../components/formselect";
 import React from "react";
-import FormBoolean from "../components/formboolean";
+import { ScrollView, View } from "react-native";
+import { getToken } from "../auth/auth";
+import api from "../../axiosConfig";
+import {
+  ActivityIndicator,
+  Button,
+  Divider,
+  FAB,
+  List,
+  Text,
+  Title,
+} from "react-native-paper";
+import { useIsFocused } from "@react-navigation/native";
 
 function AssetTagging(props) {
-  const [value, setValues] = React.useState("");
-  const mockData = [
-    { id: 1, name: "React Native Developer", checked: true },
-    { id: 2, name: "Android Developer" },
-    { id: 3, name: "iOS Developer" },
-  ];
+  const { wo_id, system_id, system_name } = props.route.params;
+  const [loading, setLoading] = React.useState(false);
+  const [bloading, setBLoading] = React.useState(false);
+  const [status, setStatus] = React.useState(false);
+  const [assets, setAssets] = React.useState([]);
+  const isFocused = useIsFocused();
 
-  const {
-    control,
-    setValue,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
+  const CompleteWO = async () => {
+    setBLoading(true);
+    api
+      .put(
+        `/AssetTagging`,
+        { id: wo_id },
+
+        {
+          headers: { ignistoken: await getToken() },
+        }
+      )
+      .then(async (res) => {
+        setBLoading(false);
+        alert(res.data.message);
+        props.navigation.navigate("WODetails", {
+          id: wo_id,
+        });
+      })
+
+      .catch((err) => {
+        setBLoading(false);
+        console.log(err);
+        if (err.response && err.response.data && err.response.data.message)
+          alert(err.response.data.message);
+        else alert("Server Error");
+      });
+  };
+
+  const getAssets = async () => {
+    api
+      .get(`/AssetTagging/${wo_id}`, {
+        headers: { ignistoken: await getToken() },
+      })
+      .then(async (res) => {
+        setLoading(false);
+        setAssets(res.data.message.data);
+        res.data.message.status === "Completed" ? setStatus(true) : false;
+        console.log(res.data.message);
+      })
+
+      .catch((err) => {
+        setLoading(false);
+        console.log(err);
+        if (err.response && err.response.data && err.response.data.message)
+          alert(err.response.data.message);
+        else alert("Server Error");
+      });
+  };
+
+  React.useEffect(() => {
+    (async () => {
+      setLoading(true);
+      await getAssets();
+    })();
+  }, [isFocused]);
+
   return (
-    <View>
-      <Appbar.Header>
-        <Appbar.Content title="Asset Tagging" />
-      </Appbar.Header>
-      <ScrollView>
-        <View style={{ padding: 10 }}>
-          <Text>Device Image</Text>
-          <ImageComponent />
+    <View style={{ flex: 1 }}>
+      <View
+        style={{
+          padding: 10,
+          margin: 10,
+          backgroundColor: "white",
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          borderRadius: 10,
+        }}
+      >
+        <View>
+          <Text variant="titleSmall">System Name</Text>
+          <Text>{system_name}</Text>
+          <Text style={{ marginTop: 10 }} variant="titleSmall">
+            No. of Assets Added
+          </Text>
+          <Text>{assets.length}</Text>
         </View>
-        <View style={{ margin: 10 }}>
-          <FormSelect
-            control={control}
-            name={"device_id"}
-            data={mockData}
-            rules={{ required: "Device is required" }}
-            label="Device"
-          />
-          <FormBoolean
-            control={control}
-            name={"yesno"}
-            rules={{ required: "YesNo is required" }}
-            label="Satisfactory"
-          />
-
-          <View style={{ alignItems: "center", flexDirection: "row" }}>
-            <View style={{ flex: 3 / 2 }}>
-              <FormInput
-                control={control}
-                name="asset_tag"
-                rules={{ required: "Tag is required" }}
-                label="Asset Tag"
-                placeholder={"Enter Tag or Generate New"}
-              />
-            </View>
-            <View style={{ flex: 1, padding: 10 }}>
-              <Button style={{ marginTop: 20 }} mode="outlined">
-                Generate
-              </Button>
-            </View>
-          </View>
-          <Button style={{ marginVertical: 20 }} mode="contained">
-            Submit
+        <View style={{ alignItems: "center" }}>
+          <Button
+            onPress={CompleteWO}
+            disabled={bloading || status}
+            loading={bloading}
+            mode="contained"
+          >
+            {status ? "Completed" : "Complete"}
           </Button>
+          {status ? (
+            <Button onPress={() => setStatus(false)}>Reopen</Button>
+          ) : null}
         </View>
-      </ScrollView>
+      </View>
+      <Title style={{ alignSelf: "center", marginBottom: 5 }}>Assets</Title>
+      {loading ? (
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            backgroundColor: "white",
+            borderRadius: 10,
+            marginHorizontal: 10,
+          }}
+        >
+          <ActivityIndicator />
+        </View>
+      ) : (
+        <ScrollView
+          style={{
+            flex: 1,
+            backgroundColor: "white",
+            borderRadius: 10,
+            marginHorizontal: 10,
+            padding: 5,
+          }}
+        >
+          {assets.map((asset) => {
+            return (
+              <View key={asset.id}>
+                <List.Item
+                  onPress={() =>
+                    props.navigation.navigate("AssetTaggingView", {
+                      asset_id: asset.id,
+                      wo_id: wo_id,
+                      system_id: system_id,
+                      system_name: system_name,
+                      status: status,
+                    })
+                  }
+                  title={asset.name}
+                  description={`Tag: ${asset.tag}`}
+                />
+                <Divider />
+              </View>
+            );
+          })}
+          <Divider />
+        </ScrollView>
+      )}
+      {status ? null : (
+        <FAB
+          style={{
+            right: 15,
+            bottom: 10,
+            position: "absolute",
+          }}
+          label="Add Asset"
+          icon="plus"
+          onPress={() => {
+            props.navigation.navigate("AssetTaggingExec", {
+              wo_id: wo_id,
+              system_id: system_id,
+              system_name: system_name,
+            });
+          }}
+        />
+      )}
     </View>
   );
 }

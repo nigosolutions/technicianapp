@@ -1,9 +1,15 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Controller } from "react-hook-form";
-import { HelperText, SegmentedButtons, Text } from "react-native-paper";
+import {
+  HelperText,
+  SegmentedButtons,
+  Text,
+  TextInput,
+} from "react-native-paper";
 
 const FormBoolean = ({ control, name, rules = {}, label }) => {
+  const [bvalue, setBValue] = React.useState();
   return (
     <Controller
       control={control}
@@ -19,22 +25,52 @@ const FormBoolean = ({ control, name, rules = {}, label }) => {
             ]}
           >
             <SegmentedButtons
-              value={value}
-              onValueChange={onChange}
+              value={bvalue}
+              onValueChange={(value) => {
+                onChange(value), setBValue(value);
+              }}
               buttons={[
                 {
-                  value: true,
+                  value: "Yes",
                   label: "Yes",
                 },
                 {
-                  value: false,
+                  value: "",
                   label: "No",
                 },
               ]}
             />
-
-            {error && (
-              <HelperText type="error">{error.message || "Error"}</HelperText>
+            {bvalue === "" ? (
+              <View
+                style={{
+                  marginVertical: 5,
+                  flexDirection: "column",
+                }}
+              >
+                <Text>{"Reason"}</Text>
+                <View
+                  style={[
+                    styles.container,
+                    { borderColor: error ? "red" : "#e8e8e8" },
+                  ]}
+                >
+                  <TextInput
+                    mode="outlined"
+                    outlineColor={error && "red"}
+                    value={value}
+                    onChangeText={onChange}
+                    style={{ fontSize: 15 }}
+                    placeholder={"Enter Reason"}
+                  />
+                  {error && (
+                    <HelperText type="error">{"Reason is required"}</HelperText>
+                  )}
+                </View>
+              </View>
+            ) : (
+              error && (
+                <HelperText type="error">{error.message || "Error"}</HelperText>
+              )
             )}
           </View>
         </View>
