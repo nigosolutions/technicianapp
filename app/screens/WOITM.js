@@ -1,13 +1,10 @@
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import React from "react";
-import { Dimensions, Image, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import {
   ActivityIndicator,
   Button,
-  Card,
-  Dialog,
   Divider,
-  Portal,
   Text,
   TouchableRipple,
 } from "react-native-paper";
@@ -15,18 +12,12 @@ import { getToken } from "../auth/auth";
 import api from "../../axiosConfig";
 
 function WOITM(props) {
-  const windowWidth = Dimensions.get("window").width;
-  const windowHeight = Dimensions.get("window").height;
   const { wo_id } = props.route.params;
-  const [pending_assets, setPendingAssets] = React.useState([]);
-  const [completed_assets, setCompletedAssets] = React.useState([]);
+  const [pending_procedures, setPendingProcedures] = React.useState([]);
+  const [completed_procedures, setCompletedProcedures] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
-  const [visible, setVisible] = React.useState(false);
-  const [selectedimage, setSelectedImage] = React.useState("");
-  const showDialog = (image) => (setVisible(true), setSelectedImage(image));
-  const hideDialog = () => setVisible(false);
 
-  const getPendingAssets = async () => {
+  const getPendingProcedures = async () => {
     api
       .get(`/ITM?wo_id=${wo_id}`, {
         headers: { ignistoken: await getToken() },
@@ -34,8 +25,8 @@ function WOITM(props) {
       .then(async (res) => {
         setLoading(false);
         console.log(res.data.message);
-        setPendingAssets(res.data.message.passets);
-        setCompletedAssets(res.data.message.cassets);
+        setPendingProcedures(res.data.message.pprocedures);
+        setCompletedProcedures(res.data.message.cprocedures);
       })
 
       .catch((err) => {
@@ -50,7 +41,7 @@ function WOITM(props) {
   React.useEffect(() => {
     (async () => {
       setLoading(true);
-      await getPendingAssets();
+      await getPendingProcedures();
     })();
   }, [props.route]);
 
@@ -64,27 +55,26 @@ function WOITM(props) {
         </View>
       );
     else
-      return !pending_assets.length ? (
+      return !pending_procedures.length ? (
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-          <Text>No Pending Assets!</Text>
+          <Text>No Pending Procedures!</Text>
           <Button onPress={() => props.navigation.navigate("WOHome")}>
             Go Back to Work Orders
           </Button>
         </View>
       ) : (
         <ScrollView style={{ flex: 1 }}>
-          {pending_assets.map((asset) => {
+          {pending_procedures.map((procedure) => {
             return (
-              <View key={asset.id}>
+              <View key={procedure.id}>
                 <TouchableRipple
-                  key={asset.id}
-                  onLongPress={() => showDialog(asset.url)}
+                  key={procedure.id}
                   onPress={() => {
                     props.navigation.navigate("WOITMExec", {
                       wo_id: wo_id,
-                      asset_id: asset.id,
+                      procedure_id: procedure.id,
                     });
                   }}
                   rippleColor="rgba(0, 0, 0, .32)"
@@ -96,34 +86,18 @@ function WOITM(props) {
                       alignItems: "center",
                     }}
                   >
-                    <Image
-                      style={{
-                        height: "100%",
-                        width: windowWidth / 3,
-                      }}
-                      resizeMode="contain"
-                      source={
-                        !asset.url
-                          ? require("../assets/logo.png")
-                          : { uri: asset.url }
-                      }
-                    />
                     <View
                       style={{ marginHorizontal: 20, flexDirection: "column" }}
                     >
                       <View style={{ flexDirection: "row" }}>
                         <Text style={{ flex: 1 }} variant="titleMedium">
-                          {asset.name}
+                          {procedure.procedure}
                         </Text>
                       </View>
-                      <Text variant="bodyLarge">{"Tag: " + asset.tag}</Text>
-                      {Object.keys(asset.general_info).map((key) => {
-                        return (
-                          <Text key={key} variant="bodyLarge">
-                            {key + ": " + asset.general_info[key]}
-                          </Text>
-                        );
-                      })}
+                      <Text variant="bodyLarge">
+                        {"Activity: " + procedure.activity}
+                      </Text>
+                      <Text variant="bodyLarge">{"AHJ: " + procedure.ahj}</Text>
                     </View>
                   </View>
                 </TouchableRipple>
@@ -144,15 +118,14 @@ function WOITM(props) {
     else
       return (
         <ScrollView style={{ flex: 1 }}>
-          {completed_assets.map((asset) => {
+          {completed_procedures.map((procedure) => {
             return (
-              <View key={asset.id}>
+              <View key={procedure.id}>
                 <TouchableRipple
-                  onLongPress={() => showDialog(asset.url)}
                   onPress={() => {
                     props.navigation.navigate("WOITMView", {
                       wo_id: wo_id,
-                      asset_id: asset.id,
+                      procedure_id: procedure.id,
                     });
                   }}
                   rippleColor="rgba(0, 0, 0, .32)"
@@ -164,25 +137,18 @@ function WOITM(props) {
                       alignItems: "center",
                     }}
                   >
-                    <Image
-                      style={{ marginHorizontal: 5, height: 75, width: 90 }}
-                      resizeMode="contain"
-                      source={
-                        !asset.url
-                          ? require("../assets/logo.png")
-                          : { uri: asset.url }
-                      }
-                    />
-                    <View style={{ marginHorizontal: 20 }}>
-                      <Text variant="titleMedium">{asset.name}</Text>
-                      <Text variant="bodyLarge">{"Tag: " + asset.tag}</Text>
-                      {Object.keys(asset.general_info).map((key) => {
-                        return (
-                          <Text key={key} variant="bodyLarge">
-                            {key + ": " + asset.general_info[key]}
-                          </Text>
-                        );
-                      })}
+                    <View
+                      style={{ marginHorizontal: 20, flexDirection: "column" }}
+                    >
+                      <View style={{ flexDirection: "row" }}>
+                        <Text style={{ flex: 1 }} variant="titleMedium">
+                          {procedure.procedure}
+                        </Text>
+                      </View>
+                      <Text variant="bodyLarge">
+                        {"Activity: " + procedure.activity}
+                      </Text>
+                      <Text variant="bodyLarge">{"AHJ: " + procedure.ahj}</Text>
                     </View>
                   </View>
                 </TouchableRipple>
@@ -195,25 +161,6 @@ function WOITM(props) {
   };
   return (
     <View style={{ flex: 1 }}>
-      <Portal>
-        <Dialog visible={visible} onDismiss={hideDialog}>
-          <Dialog.Title>Asset Image</Dialog.Title>
-          <Dialog.Content>
-            <Card.Cover
-              style={{ height: 0.5 * windowHeight }}
-              resizeMode="contain"
-              source={
-                !selectedimage
-                  ? require("../assets/logo.png")
-                  : { uri: selectedimage }
-              }
-            />
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={hideDialog}>Done</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
       <Tab.Navigator sceneContainerStyle={{ backgroundColor: "white" }}>
         <Tab.Screen name="Pending" component={Pending} />
         <Tab.Screen name="Completed" component={Completed} />

@@ -35,15 +35,19 @@ function WODetails(props) {
         let employees = res.data.message.employees;
         let resources = res.data.message.resources;
         setMessageCount(res.data.message.message_count.count);
-        let passet, casset;
-        !wo.pending_assets ? (passet = []) : (passet = wo.pending_assets);
-        !wo.completed_assets ? (casset = []) : (casset = wo.completed_assets);
-        setPendingCount(passet.length);
-        setCompletedCount(casset.length);
+        let pprocedures, cprocedures;
+        !wo.pending_procedures
+          ? (pprocedures = [])
+          : (pprocedures = wo.pending_procedures);
+        !wo.completed_procedures
+          ? (cprocedures = [])
+          : (cprocedures = wo.completed_procedures);
+        setPendingCount(pprocedures.length);
+        setCompletedCount(cprocedures.length);
         setProgress(
-          !(passet.length + casset.length)
+          !(pprocedures.length + cprocedures.length)
             ? 0
-            : casset.length / (passet.length + casset.length)
+            : cprocedures.length / (pprocedures.length + cprocedures.length)
         );
         if (wo.notification_type === "Asset Tagging") {
           setWO(wo);
@@ -80,7 +84,7 @@ function WODetails(props) {
             Description: wo.description,
             "Notification ID": wo.notification_id,
             "Contract ID": wo.contract_id,
-            "No. of Procedures": passet.length + casset.length,
+            "No. of Procedures": pprocedures.length + cprocedures.length,
             "System Name": wo.name,
             "Building Name": wo.building_name,
             "Building Area": wo.building_area,
